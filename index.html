@@ -1,426 +1,206 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="유튜브와 블로그에 활용할 제목을 쉽고 빠르게 만드는 콘텐츠 제목 생성기">
-  <title>콘텐츠 제목 생성기</title>
-  <style>
-    :root {
-      --blue:#2563eb; --blue-dark:#1d4ed8; --blue-soft:#eff6ff;
-      --coral:#f25555; --coral-dark:#dc3d3d; --coral-soft:#fff1f1;
-      --green:#11996b; --green-soft:#ecfdf5; --ink:#172033;
-      --muted:#667085; --line:#e6eaf0; --surface:#fff; --bg:#f5f7fb;
-      --shadow:0 14px 40px rgba(28,43,76,.09); --radius:22px;
-      --accent:var(--coral); --accent-dark:var(--coral-dark); --accent-soft:var(--coral-soft);
-    }
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{margin:0;background:linear-gradient(145deg,#f7faff 0%,#f4f6fa 54%,#fff7f6 100%);color:var(--ink);font-family:Arial,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;line-height:1.55}
-    button,input,select{font:inherit}
-    button{cursor:pointer}
-    button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid rgba(37,99,235,.22);outline-offset:2px}
-    .app{width:min(1120px,calc(100% - 32px));margin:0 auto;padding:38px 0 64px}
-    header{text-align:center;margin-bottom:26px}
-    .brand{display:inline-flex;align-items:center;gap:10px;color:var(--blue);font-size:.92rem;font-weight:800;letter-spacing:.05em;margin-bottom:6px}
-    .brand-mark{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--blue);color:#fff;box-shadow:0 7px 18px rgba(37,99,235,.25)}
-    h1{font-size:clamp(2rem,5vw,3.1rem);line-height:1.15;margin:4px 0 10px;letter-spacing:-.045em}
-    header p{margin:0;color:var(--muted);font-size:clamp(1rem,2vw,1.12rem)}
-    .mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:9px;background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);margin:0 auto 20px;max-width:720px}
-    .mode-btn{min-height:64px;border:0;border-radius:14px;background:transparent;color:#657086;font-weight:800;font-size:1.07rem;transition:.2s ease}
-    .mode-btn:hover{background:#f8fafc}
-    .mode-btn.active[data-mode="youtube"]{background:var(--coral);color:#fff;box-shadow:0 8px 22px rgba(242,85,85,.25)}
-    .mode-btn.active[data-mode="blog"]{background:var(--blue);color:#fff;box-shadow:0 8px 22px rgba(37,99,235,.25)}
-    .workspace{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}
-    .card{background:rgba(255,255,255,.96);border:1px solid rgba(226,232,240,.9);border-radius:var(--radius);box-shadow:var(--shadow)}
-    .form-card{padding:clamp(20px,4vw,34px)}
-    .step{display:flex;align-items:center;gap:10px;margin-bottom:18px;font-weight:900;font-size:1.12rem}
-    .step span{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:.9rem}
-    .field{margin-bottom:22px}
-    .label-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
-    label,.field-label{font-weight:800;font-size:.95rem}
-    .optional{font-size:.8rem;color:#8a94a6;font-weight:600}
-    .topic-row{display:grid;grid-template-columns:1fr auto;gap:9px}
-    input,select{width:100%;min-height:50px;border:1px solid #d9dee8;border-radius:12px;background:#fff;padding:0 14px;color:var(--ink);transition:.2s}
-    input:hover,select:hover{border-color:#b9c3d4}
-    input:focus,select:focus{border-color:var(--blue)}
-    .example-btn,.small-btn{border:1px solid #dce2eb;background:#fff;border-radius:12px;color:#465168;font-weight:800;padding:0 15px;white-space:nowrap}
-    .example-btn:hover,.small-btn:hover{background:#f7f9fc}
-    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    .choice-group{display:flex;flex-wrap:wrap;gap:8px}
-    .choice{border:1px solid #dce2eb;background:#fff;border-radius:999px;padding:9px 14px;color:#536077;font-weight:700;font-size:.9rem;transition:.18s}
-    .choice:hover{border-color:var(--accent);color:var(--accent)}
-    .choice.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-dark);box-shadow:inset 0 0 0 1px var(--accent)}
-    .generate-btn{width:100%;min-height:58px;border:0;border-radius:15px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;font-size:1.08rem;font-weight:900;box-shadow:0 12px 24px color-mix(in srgb,var(--accent) 28%,transparent);transition:.2s}
-    .generate-btn:hover{transform:translateY(-2px);filter:saturate(1.08)}
-    .history-card{padding:22px;position:sticky;top:18px}
-    .section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
-    .section-head h2{font-size:1.05rem;margin:0}
-    .clear-btn{border:0;background:transparent;color:#8791a2;font-size:.82rem;text-decoration:underline}
-    .history-tabs{display:flex;gap:6px;margin-bottom:14px}
-    .history-tab{flex:1;border:1px solid var(--line);border-radius:9px;background:#fff;padding:8px;color:#667085;font-weight:800}
-    .history-tab.active{background:var(--blue-soft);border-color:#9ec0ff;color:var(--blue-dark)}
-    .history-list{display:grid;gap:8px;max-height:520px;overflow:auto}
-    .history-item{border:1px solid var(--line);border-radius:11px;padding:10px 11px;background:#fafbfc;font-size:.86rem;color:#49546a;cursor:pointer}
-    .history-item:hover{border-color:#adc4ef;background:#f5f8ff}
-    .empty{padding:30px 10px;text-align:center;color:#98a2b3;font-size:.9rem}
-    .results-card{display:none;margin-top:20px;padding:clamp(20px,4vw,34px)}
-    .results-card.show{display:block;animation:rise .35s ease}
-    @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-    .results-title{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px}
-    .results-title h2{margin:0;font-size:1.4rem}
-    .results-title p{margin:4px 0 0;color:var(--muted);font-size:.9rem}
-    .result-section{margin-top:24px}
-    .result-section h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:1rem}
-    .count{font-size:.75rem;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:3px 8px}
-    .result-list{display:grid;gap:10px}
-    .result-item{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff;transition:.18s}
-    .result-item:hover{border-color:#b7c5dc;box-shadow:0 5px 14px rgba(31,45,73,.06)}
-    .num{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:#f1f4f8;color:#687386;font-size:.82rem;font-weight:900}
-    .title-text{font-weight:750;word-break:keep-all}
-    .actions{display:flex;gap:6px}
-    .icon-btn{border:1px solid var(--line);border-radius:9px;background:#fff;padding:7px 9px;color:#596579;font-size:.8rem;font-weight:800}
-    .icon-btn:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-dark)}
-    .icon-btn.fav.on{color:#e18b00;background:#fff9e8;border-color:#ffd67c}
-    .more-panel{display:none;margin-top:22px;border-radius:16px;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 25%,white);padding:20px}
-    .more-panel.show{display:block;animation:rise .3s ease}
-    .more-panel h3{margin:0 0 4px;font-size:1.03rem}
-    .selected-title{margin:0 0 14px;color:#546076;font-size:.9rem}
-    .suggestions{display:grid;gap:8px;margin:0;padding:0;list-style:none}
-    .suggestions li{display:flex;justify-content:space-between;gap:10px;align-items:center;background:#fff;border-radius:10px;padding:10px 12px;font-weight:750}
-    .retry-btn{display:block;margin:24px auto 0;border:1px solid #cfd7e3;background:#fff;border-radius:12px;padding:11px 20px;color:#48546a;font-weight:850}
-    .toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,18px);background:#172033;color:#fff;padding:11px 17px;border-radius:11px;opacity:0;pointer-events:none;transition:.25s;z-index:10;box-shadow:0 10px 30px rgba(0,0,0,.22)}
-    .toast.show{opacity:1;transform:translate(-50%,0)}
-    @media(max-width:850px){.workspace{grid-template-columns:1fr}.history-card{position:static}.history-list{max-height:280px}}
-    @media(max-width:600px){.app{width:min(100% - 20px,1120px);padding-top:22px}.mode-switch{position:sticky;top:8px;z-index:5;padding:6px;border-radius:16px}.mode-btn{min-height:56px;font-size:1rem}.form-card,.results-card{border-radius:18px}.grid-2{grid-template-columns:1fr}.topic-row{grid-template-columns:1fr}.example-btn{min-height:46px}.result-item{grid-template-columns:30px 1fr}.actions{grid-column:2;flex-wrap:wrap}.icon-btn{flex:1;min-height:38px}.results-title{align-items:flex-start;flex-direction:column}}
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>쉬운 영어 번역기 - Easy Talk</title>
+  <!-- Google / Pretendard Fonts -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="app">
-    <header>
-      <div class="brand"><span class="brand-mark">T</span> TITLE MAKER</div>
-      <h1>콘텐츠 제목 생성기</h1>
-      <p>유튜브와 블로그 제목을 쉽고 빠르게 만들어 보세요</p>
-    </header>
 
-    <nav class="mode-switch" aria-label="콘텐츠 종류 선택">
-      <button class="mode-btn active" data-mode="youtube" type="button">▶ 유튜브 제목</button>
-      <button class="mode-btn" data-mode="blog" type="button">✎ 블로그 제목</button>
-    </nav>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="logo-area">
+        <div class="logo-icon">🐣</div>
+        <div>
+          <h1 class="logo-title">쉬운 영어 번역기 🌈</h1>
+          <p class="logo-desc">귀여운 영어 공부 친구 ✨ 쉬운 번역 · 단어 사전</p>
+        </div>
+      </div>
+      <nav class="nav-tabs">
+        <button class="nav-tab-btn active" data-tab="translate-tab">
+          <i class="fa-solid fa-language"></i> 번역기
+        </button>
+        <button class="nav-tab-btn" data-tab="presets-tab">
+          <i class="fa-solid fa-book-open"></i> 일상 표현
+        </button>
+        <button class="nav-tab-btn" data-tab="favorites-tab">
+          <i class="fa-solid fa-star"></i> 저장 목록
+        </button>
+      </nav>
+    </div>
+  </header>
 
-    <div class="workspace">
-      <section class="card form-card" aria-labelledby="formHeading">
-        <div class="step" id="formHeading"><span>1</span><strong id="topicHeading">영상 주제를 입력하세요</strong></div>
-        <div class="field">
-          <div class="label-row"><label for="topic" id="topicLabel">영상 주제</label></div>
-          <div class="topic-row">
-            <input id="topic" type="text" maxlength="100" placeholder="예: 중장년층을 위한 스마트폰 활용법" autocomplete="off">
-            <button type="button" class="example-btn" id="exampleBtn">예시 넣기</button>
+  <!-- Main Container -->
+  <main class="app-container">
+
+    <!-- TAB 1: Translation Workspace -->
+    <section id="translate-tab" class="tab-view active">
+      
+      <!-- Language Switcher Bar -->
+      <div class="lang-switch-card">
+        <div class="lang-badge badge-source" id="src-lang-label">
+          <span>🇰🇷 한국어</span>
+        </div>
+        <button class="switch-btn" id="swap-lang-btn" title="언어 바꾸기">
+          <i class="fa-solid fa-arrow-right-arrow-left"></i>
+        </button>
+        <div class="lang-badge badge-target" id="tgt-lang-label">
+          <span>🇺🇸 쉬운 영어</span>
+        </div>
+      </div>
+
+      <!-- Translation 2-Column Grid -->
+      <div class="translator-grid">
+        
+        <!-- Input Box -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <span id="input-header-title">한국어로 입력</span>
+            <span class="char-count" id="char-count">0 / 500</span>
+          </div>
+
+          <textarea 
+            id="source-input" 
+            class="trans-textarea" 
+            placeholder="번역할 내용을 입력하세요... (예: 화장실이 어디예요?)"
+            maxlength="500"
+            rows="6"
+          ></textarea>
+
+          <div class="panel-footer">
+            <div class="btn-group">
+              <button class="icon-btn" id="mic-btn" title="음성으로 말하기">
+                <i class="fa-solid fa-microphone"></i> <span>음성 입력</span>
+              </button>
+              <button class="icon-btn" id="clear-btn" title="내용 지우기">
+                <i class="fa-solid fa-trash-can"></i> <span>지우기</span>
+              </button>
+            </div>
+            <button class="action-btn-main" id="translate-btn">
+              <i class="fa-solid fa-bolt"></i> <span>번역하기</span>
+            </button>
           </div>
         </div>
 
-        <div class="step"><span>2</span><strong>제목 스타일을 골라보세요</strong></div>
-        <div class="grid-2">
-          <div class="field">
-            <div class="label-row"><span class="field-label" id="typeLabel">영상 유형</span></div>
-            <select id="contentType" aria-labelledby="typeLabel"></select>
+        <!-- Output Box -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <span id="output-header-title">쉬운 영어 번역 결과</span>
+            <span class="easy-badge" id="mode-badge">
+              <i class="fa-solid fa-check-circle"></i> 초보자용 쉬운 표현
+            </span>
           </div>
-          <div class="field">
-            <div class="label-row"><span class="field-label">제목 길이</span></div>
-            <div class="choice-group" id="lengthChoices">
-              <button type="button" class="choice" data-value="짧게">짧게</button>
-              <button type="button" class="choice active" data-value="보통">보통</button>
-              <button type="button" class="choice" data-value="길게">길게</button>
+
+          <div class="output-content" id="output-area">
+            <div class="output-placeholder" id="placeholder-text">
+              왼쪽에 문장을 입력하거나 음성으로 말하면 쉬운 번역과 한글 발음이 여기에 나타납니다.
+            </div>
+
+            <!-- 번역 텍스트 결과 -->
+            <div class="main-translation" id="translated-text" style="display: none;"></div>
+        
+            <!-- 어려운 단어 사전 영역 -->
+            <div id="vocab-box" class="vocab-box" style="display: none;"></div>
+
+            <!-- 발음 따라하기(연습) 피드백 박스 -->
+            <div class="practice-box" id="practice-container" style="display: none;">
+              <div class="practice-header">
+                <span>🎙️ 내 발음 따라하기 테스트</span>
+                <span id="practice-status" style="font-size: 11px; color: #6B7280;">말씀해보세요</span>
+              </div>
+              <div id="practice-feedback" style="font-size: 14px; font-weight: 600; color: #1F2937;"></div>
+            </div>
+          </div>
+
+          <div class="panel-footer">
+            <div class="btn-group">
+              <button class="icon-btn" id="speak-btn" title="원어민 발음 듣기" disabled>
+                <i class="fa-solid fa-volume-high"></i> <span>듣기</span>
+              </button>
+              <button class="icon-btn" id="speak-slow-btn" title="느린 속도로 발음 듣기" disabled>
+                <i class="fa-solid fa-person-walking"></i> <span>천천히</span>
+              </button>
+              <button class="icon-btn" id="practice-btn" title="내가 직접 발음해보기" disabled>
+                <i class="fa-solid fa-headset"></i> <span>발음 연습</span>
+              </button>
+            </div>
+            <div class="btn-group">
+              <button class="icon-btn" id="copy-btn" title="번역 결과 복사" disabled>
+                <i class="fa-regular fa-copy"></i> <span>복사</span>
+              </button>
+              <button class="icon-btn" id="fav-btn" title="문장장에 저장" disabled>
+                <i class="fa-regular fa-star"></i> <span>저장</span>
+              </button>
             </div>
           </div>
         </div>
-        <div class="field">
-          <div class="label-row"><span class="field-label">제목 분위기</span></div>
-          <div class="choice-group" id="toneChoices"></div>
-        </div>
-        <div class="field">
-          <div class="label-row"><label for="keywords">핵심 키워드</label><span class="optional">선택사항 · 쉼표로 구분</span></div>
-          <input id="keywords" type="text" maxlength="120" placeholder="예: ChatGPT, 부산, 중장년, 초보자">
-        </div>
-        <button type="button" class="generate-btn" id="generateBtn">유튜브 제목 만들기</button>
-      </section>
 
-      <aside class="card history-card">
-        <div class="section-head"><h2>최근 생성 제목</h2><button type="button" class="clear-btn" id="clearHistory">최근 기록 삭제</button></div>
-        <div class="history-tabs">
-          <button type="button" class="history-tab active" data-history="youtube">유튜브</button>
-          <button type="button" class="history-tab" data-history="blog">블로그</button>
-        </div>
-        <div class="history-list" id="historyList"></div>
-      </aside>
-    </div>
+      </div>
 
-    <section class="card results-card" id="resultsCard" aria-live="polite">
-      <div class="results-title"><div><h2 id="resultsHeading">추천 제목 10개</h2><p>마음에 드는 제목을 복사하거나 선택해 보세요.</p></div></div>
-      <div id="results"></div>
-      <div class="more-panel" id="morePanel"></div>
-      <button type="button" class="retry-btn" id="retryBtn">다시 만들기</button>
+      <!-- Quick Tips & Examples Banner -->
+      <div style="background: white; border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: var(--shadow-subtle);">
+        <div style="font-size: 14px; color: var(--text-sub); display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 20px;">🎯</span>
+          <span>한국어를 입력하면 누구나 쉽게 읽을 수 있는 <strong>한국어 발음(독음)</strong>이 자동으로 생성됩니다.</span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <span style="font-size: 12px; font-weight: 700; color: var(--primary); background: var(--primary-light); padding: 4px 10px; border-radius: 20px;">실시간 번역</span>
+          <span style="font-size: 12px; font-weight: 700; color: var(--accent-mint); background: var(--accent-mint-light); padding: 4px 10px; border-radius: 20px;">원어민 발음</span>
+        </div>
+      </div>
+
     </section>
+
+    <!-- TAB 2: Situation Presets -->
+    <section id="presets-tab" class="tab-view">
+      <div class="section-title">
+        <span>📖 상황별 필수 쉬운 영어 표현</span>
+      </div>
+      
+      <!-- Category Filter Pills -->
+      <div class="preset-category-tabs" id="preset-cat-tabs">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Preset Cards Grid -->
+      <div class="preset-grid" id="preset-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- TAB 3: Saved Favorites -->
+    <section id="favorites-tab" class="tab-view">
+      <div class="section-title" style="justify-content: space-between;">
+        <span>⭐ 내가 저장한 문장장 (<span id="fav-count">0</span>)</span>
+        <button class="icon-btn" id="clear-favs-btn" style="font-size: 12px;">
+          <i class="fa-solid fa-trash"></i> 전체 삭제
+        </button>
+      </div>
+
+      <div class="favorites-list" id="favorites-list">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
   </main>
-  <div class="toast" id="toast" role="status"></div>
 
-  <script>
-    // 앱에서 사용하는 선택 항목과 예시 문장입니다.
-    const CONFIG = {
-      youtube: {
-        label:'유튜브', topicLabel:'영상 주제', heading:'영상 주제를 입력하세요',
-        placeholder:'예: 중장년층을 위한 스마트폰 활용법', button:'유튜브 제목 만들기',
-        types:['정보형','교육형','브이로그','리뷰','쇼츠','이야기','홍보영상'],
-        tones:['깔끔한','궁금증 유발','강렬한','따뜻한','전문적인','재미있는','코믹한'],
-        examples:['AI로 영상 만드는 방법','중장년 스마트폰 활용법','부산 여행 브이로그','ChatGPT 초보자 사용법','Canva로 카드뉴스 만들기']
-      },
-      blog: {
-        label:'블로그', topicLabel:'블로그 글 주제', heading:'블로그 글 주제를 입력하세요',
-        placeholder:'예: 부산 당일치기 여행 코스', button:'블로그 제목 만들기',
-        types:['정보형','후기형','맛집','여행','교육','제품 리뷰','생활정보','건강정보','홍보','일상'],
-        tones:['검색 친화적','깔끔한','궁금증 유발','친근한','전문적인','감성적인','코믹한'],
-        examples:['부산 당일치기 여행','ChatGPT 활용법','중장년 스마트폰 사용법','AI 이미지 만드는 방법','부산 맛집 추천']
-      }
-    };
+  <!-- Footer -->
+  <footer class="app-footer">
+    <p>🐣 쉬운 영어 번역기 • 영어가 쉬워지는 마법 ✨</p>
+  </footer>
 
-    let mode = 'youtube';
-    let historyMode = 'youtube';
-    let selectedLength = '보통';
-    let currentTitles = [];
-    const $ = id => document.getElementById(id);
+  <!-- Floating Toast Notification -->
+  <div class="toast" id="toast">알림 메시지</div>
 
-    // 배열의 순서를 무작위로 섞어 매번 다른 결과가 나오게 합니다.
-    function shuffle(items){
-      const copy = [...items];
-      for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];}
-      return copy;
-    }
-
-    function clean(text){return text.trim().replace(/\s+/g,' ')}
-    function getKeywords(){return $('keywords').value.split(/[,\n]/).map(clean).filter(Boolean)}
-    function mainKeyword(topic,keywords){return keywords[0] || topic}
-
-    // 선택한 모드에 맞춰 입력 화면의 문구와 항목을 바꿉니다.
-    function setMode(nextMode){
-      mode=nextMode;
-      const cfg=CONFIG[mode];
-      document.documentElement.style.setProperty('--accent',mode==='youtube'?'var(--coral)':'var(--blue)');
-      document.documentElement.style.setProperty('--accent-dark',mode==='youtube'?'var(--coral-dark)':'var(--blue-dark)');
-      document.documentElement.style.setProperty('--accent-soft',mode==='youtube'?'var(--coral-soft)':'var(--blue-soft)');
-      document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
-      $('topicHeading').textContent=cfg.heading;
-      $('topicLabel').textContent=cfg.topicLabel;
-      $('topic').placeholder=cfg.placeholder;
-      $('typeLabel').textContent=mode==='youtube'?'영상 유형':'블로그 유형';
-      $('generateBtn').textContent=cfg.button;
-      $('contentType').innerHTML=cfg.types.map(v=>`<option value="${v}">${v}</option>`).join('');
-      $('toneChoices').innerHTML=cfg.tones.map((v,i)=>`<button type="button" class="choice ${i===0?'active':''}" data-value="${v}">${v}</button>`).join('');
-      $('resultsCard').classList.remove('show');
-      $('morePanel').classList.remove('show');
-    }
-
-    function selectedTone(){return $('toneChoices').querySelector('.active')?.dataset.value || CONFIG[mode].tones[0]}
-
-    // 유튜브용 샘플 제목 생성 함수입니다. 추후 이 함수 내부를 Gemini/OpenAI API 호출로 교체할 수 있습니다.
-    function generateYoutubeTitles(topic,type,tone,length,keywords){
-      const key=mainKeyword(topic,keywords); const extra=keywords.slice(1,3).join(' · ');
-      const short=length==='짧게'; const long=length==='길게';
-      const tail=extra?` | ${extra}`:'';
-      // 코믹한 분위기를 고르면 가볍고 재치 있는 제목을 별도로 생성합니다.
-      // 내용을 숨기는 낚시성 문구나 지나친 과장은 사용하지 않습니다.
-      if(tone==='코믹한'){
-        return {
-          기본형:shuffle([
-            `${topic}, 초보자의 우당탕탕 도전기`,
-            `${topic} 쉽게 하려다가 제대로 배웠습니다`,
-            `${topic}, 웃으면서 배우는 ${short?'핵심 팁':'실전 활용법'}`,
-            `${topic} 도전! 생각보다 어렵지 않네요`,
-            `${key}와 친해지는 가장 유쾌한 방법`,
-            `${topic}, 실수해도 괜찮은 초보 가이드${tail}`
-          ]).slice(0,4),
-          클릭유도형:shuffle([
-            `${topic}, 왜 저만 이렇게 되는 거죠?`,
-            `${topic} 시작했는데 일이 커졌습니다`,
-            `초보자가 ${topic}에 도전하면 생기는 일`,
-            `${topic}, 헤매다가 찾은 쉬운 방법`,
-            `${key} 때문에 웃고 결국 배웠습니다`
-          ]).slice(0,3),
-          검색형:shuffle([
-            `${key} 초보 사용법, 실수하면서 배운 핵심 팁`,
-            `${key} 쉽게 배우기｜${topic} 유쾌한 도전기`,
-            `${key} 활용법, 초보자가 자주 하는 실수${tail}`,
-            `${key} 시작하기, 웃으며 따라 하는 단계별 방법`,
-            `${key} 실전 팁｜헤매지 않고 ${topic} 하는 법`
-          ]).slice(0,3)
-        };
-      }
-      const basics=[
-        `${topic}, ${type==='교육형'?'초보자도 쉽게 배우는 방법':'쉽게 시작하는 방법'}`,
-        `${topic} ${short?'핵심 정리':long?'처음부터 끝까지 한 번에 알아보기':'한눈에 정리'}`,
-        `${tone==='따뜻한'?'차근차근 함께하는 ':''}${topic}${long?' 완벽 가이드':''}`,
-        `${topic}, 직접 해보니 꼭 알아야 할 ${short?'팁':'핵심 포인트'}`,
-        `${key} 초보자를 위한 ${topic} 가이드${tail}`,
-        `${topic} 실전 활용법${long?'｜준비부터 완성까지':''}`
-      ];
-      const click=[
-        `${topic}, 어디서부터 시작할까?`,
-        `${topic}이 어렵다면 이것부터 해보세요`,
-        `처음 해도 괜찮아요! ${topic} 쉽게 따라하기`,
-        `${topic}, 해보면 달라지는 ${short?'3가지':'핵심 포인트 5가지'}`,
-        `${key} 제대로 활용하는 가장 쉬운 방법`
-      ];
-      const search=[
-        `${key} 활용법, 초보자도 바로 따라하기${tail}`,
-        `${key} ${type} 만들기 ${short?'핵심 팁':long?'단계별 완벽 가이드':'쉬운 방법'}`,
-        `${key} 초보 가이드｜${topic}`,
-        `${key} 추천 방법, ${topic} 쉽게 시작하기`,
-        `${key} 사용법과 실전 팁 총정리`
-      ];
-      return {기본형:shuffle(basics).slice(0,4),클릭유도형:shuffle(click).slice(0,3),검색형:shuffle(search).slice(0,3)};
-    }
-
-    // 블로그용 샘플 제목 생성 함수입니다. API 연결 시 함수 이름은 그대로 유지할 수 있습니다.
-    function generateBlogTitles(topic,type,tone,length,keywords){
-      const key=mainKeyword(topic,keywords); const extra=keywords.slice(1,3).join(', ');
-      const short=length==='짧게'; const long=length==='길게';
-      const info=extra?`, ${extra}까지`:'';
-      // 블로그의 코믹한 제목은 검색 키워드를 살리면서 경험담처럼 친근하게 만듭니다.
-      if(tone==='코믹한'){
-        return {
-          기본형:shuffle([
-            `${topic}, 자신 있게 시작하고 살짝 당황한 후기`,
-            `${topic} 도전기, 웃고 있지만 정보는 진지합니다`,
-            `${topic}, 초보자의 좌충우돌 경험담`,
-            `${topic} 쉽게 하려다가 제대로 공부했습니다`,
-            `${key}와 친해지는 유쾌한 방법`,
-            `${topic}, 실수 덕분에 알게 된 핵심 팁`
-          ]).slice(0,4),
-          검색형:shuffle([
-            `${key} 초보 가이드, 직접 해보고 알게 된 실수와 팁`,
-            `${key} 활용법｜${topic} 좌충우돌 후기`,
-            `${key} 쉽게 시작하기, 헤매지 않는 핵심 방법${info}`,
-            `${key} 후기, 초보자가 자주 하는 실수 정리`,
-            `${key} 추천 팁, 웃으며 배우는 ${topic}`
-          ]).slice(0,3),
-          클릭유도형:shuffle([
-            `${topic}, 왜 생각처럼 되지 않았을까?`,
-            `${topic} 시작했는데 예상 밖의 일이 생겼습니다`,
-            `초보자가 ${topic}에 도전하면 생기는 일`,
-            `${topic}, 헤매다가 찾은 현실적인 방법`,
-            `${key} 때문에 당황했지만 결국 성공했습니다`
-          ]).slice(0,3)
-        };
-      }
-      const basics=[
-        `${topic}, ${short?'핵심만 정리':long?'처음 준비하는 분을 위한 자세한 안내':'알아두면 좋은 핵심 정리'}`,
-        `${topic} ${type==='후기형'?'직접 경험한 솔직 후기':'쉽게 알아보기'}`,
-        `${topic}${info} 한 번에 정리`,
-        `${tone==='감성적인'?'천천히 즐기는 ':''}${topic} 이야기`,
-        `${topic}, 초보자를 위한 실용 가이드`,
-        `${topic} 준비부터 활용까지 알아보기`
-      ];
-      const search=[
-        `${key} 추천, ${topic} ${short?'핵심 정보':'꼭 알아야 할 정보 총정리'}`,
-        `${key} 방법｜${topic}${info}`,
-        `${key} 초보 가이드, ${topic} 쉽게 시작하기`,
-        `${key} 후기와 유용한 팁 ${long?'자세히 알아보기':'정리'}`,
-        `${key} 정보, 자주 묻는 질문까지 한 번에`
-      ];
-      const click=[
-        `${topic}, 어떻게 시작하면 좋을까?`,
-        `${topic} 전에 꼭 확인할 ${short?'3가지':'핵심 포인트 5가지'}`,
-        `${topic}, 직접 해보니 알게 된 현실적인 팁`,
-        `${topic}이 궁금하다면 먼저 읽어보세요`,
-        `처음이라면 놓치기 쉬운 ${topic} 체크포인트`
-      ];
-      return {기본형:shuffle(basics).slice(0,4),검색형:shuffle(search).slice(0,3),클릭유도형:shuffle(click).slice(0,3)};
-    }
-
-    // 선택한 유튜브 제목과 어울리는 짧은 썸네일 문구 3개를 만듭니다.
-    function generateThumbnailTexts(title){
-      const key=mainKeyword(clean($('topic').value),getKeywords()).replace(/\s+/g,' ').slice(0,8);
-      const pool=[`${key} 첫걸음`,'이것부터 시작','초보자 필수','쉽게 따라하기','핵심만 쏙쏙','한 번에 정리','실전 활용법','바로 써먹기'];
-      return shuffle([...new Set(pool.filter(v=>!title.includes(v)))]).slice(0,3);
-    }
-
-    // 선택한 블로그 제목을 바탕으로 본문 소제목 5개를 만듭니다.
-    function generateBlogSubtitles(title){
-      const topic=clean($('topic').value); const type=$('contentType').value;
-      const maps={
-        여행:[`${topic} 떠나기 전 준비하기`,'오전에 둘러보기 좋은 곳','점심 식사와 쉬어가기','오후 추천 코스','여행을 알차게 마무리하는 팁'],
-        맛집:[`${topic}을 찾게 된 이유`,'위치와 영업시간 확인하기','대표 메뉴와 가격','직접 먹어본 솔직 후기','방문 전 알아두면 좋은 팁'],
-        후기형:[`${topic}을 선택한 이유`,'사용 전 기대했던 점','직접 경험한 과정','좋았던 점과 아쉬운 점','이런 분께 추천해요'],
-        교육:[`${topic}을 배우기 전에`,'꼭 알아야 할 기본 개념','단계별로 따라 해보기','자주 생기는 실수와 해결법','배운 내용을 활용하는 방법'],
-        제품리뷰:[`${topic} 제품의 주요 특징`,'구성과 사용 방법','직접 사용해 본 장점','아쉬운 점과 주의사항','구매 전 최종 정리']
-      };
-      return maps[type.replace(' ','')] || [`${topic}이 필요한 이유`,`${topic} 핵심 내용 알아보기`,'처음 시작하는 방법','활용할 때 알아둘 점','핵심 내용과 마무리'];
-    }
-
-    function showToast(message){const t=$('toast');t.textContent=message;t.classList.add('show');clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>t.classList.remove('show'),1700)}
-    async function copyText(text){try{await navigator.clipboard.writeText(text)}catch{const a=document.createElement('textarea');a.value=text;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}showToast('복사했습니다.')}
-
-    function saveHistory(titles){
-      const key=`titleMakerHistory_${mode}`; const old=JSON.parse(localStorage.getItem(key)||'[]');
-      localStorage.setItem(key,JSON.stringify([...new Set([...titles,...old])].slice(0,20)));
-      historyMode=mode; document.querySelectorAll('.history-tab').forEach(b=>b.classList.toggle('active',b.dataset.history===historyMode)); renderHistory();
-    }
-    function renderHistory(){
-      const items=JSON.parse(localStorage.getItem(`titleMakerHistory_${historyMode}`)||'[]');
-      $('historyList').innerHTML=items.length?items.map(t=>`<div class="history-item" tabindex="0" data-title="${escapeHtml(t)}">${escapeHtml(t)}</div>`).join(''):'<div class="empty">아직 생성한 제목이 없습니다.</div>';
-    }
-    function escapeHtml(text){return text.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-
-    function renderResults(groups){
-      let number=1; currentTitles=Object.values(groups).flat();
-      $('results').innerHTML=Object.entries(groups).map(([name,titles])=>`
-        <section class="result-section"><h3>${name.replace('클릭유도형','클릭 유도형')} <span class="count">${titles.length}개</span></h3>
-          <div class="result-list">${titles.map(title=>`
-            <article class="result-item"><span class="num">${number++}</span><div class="title-text">${escapeHtml(title)}</div>
-              <div class="actions"><button class="icon-btn copy" data-title="${escapeHtml(title)}">복사</button><button class="icon-btn fav" data-title="${escapeHtml(title)}">☆ 즐겨찾기</button><button class="icon-btn select" data-title="${escapeHtml(title)}">선택</button></div>
-            </article>`).join('')}</div></section>`).join('');
-      $('resultsHeading').textContent=`${CONFIG[mode].label} 추천 제목 10개`;
-      $('morePanel').classList.remove('show'); $('resultsCard').classList.add('show'); saveHistory(currentTitles);
-      setTimeout(()=>$('resultsCard').scrollIntoView({behavior:'smooth',block:'start'}),50);
-    }
-
-    function createTitles(){
-      const topic=clean($('topic').value);
-      if(!topic){$('topic').focus();showToast('주제를 먼저 입력해 주세요.');return}
-      const args=[topic,$('contentType').value,selectedTone(),selectedLength,getKeywords()];
-      const groups=mode==='youtube'?generateYoutubeTitles(...args):generateBlogTitles(...args);
-      renderResults(groups);
-    }
-
-    function showMore(title){
-      const panel=$('morePanel');
-      if(mode==='youtube'){
-        const texts=generateThumbnailTexts(title);
-        panel.innerHTML=`<h3>썸네일 문구 추천</h3><p class="selected-title">선택한 제목: ${escapeHtml(title)}</p><ul class="suggestions">${texts.map(t=>`<li><span>${escapeHtml(t)}</span><button class="small-btn suggestion-copy" data-text="${escapeHtml(t)}">복사</button></li>`).join('')}</ul>`;
-      }else{
-        const texts=generateBlogSubtitles(title);
-        panel.innerHTML=`<h3>본문 소제목 추천</h3><p class="selected-title">선택한 제목: ${escapeHtml(title)}</p><ol class="suggestions">${texts.map(t=>`<li><span>${escapeHtml(t)}</span><button class="small-btn suggestion-copy" data-text="${escapeHtml(t)}">복사</button></li>`).join('')}</ol>`;
-      }
-      panel.classList.add('show');panel.scrollIntoView({behavior:'smooth',block:'nearest'});
-    }
-
-    document.querySelectorAll('.mode-btn').forEach(btn=>btn.addEventListener('click',()=>setMode(btn.dataset.mode)));
-    $('lengthChoices').addEventListener('click',e=>{if(!e.target.matches('.choice'))return;selectedLength=e.target.dataset.value;[...e.currentTarget.children].forEach(b=>b.classList.toggle('active',b===e.target))});
-    $('toneChoices').addEventListener('click',e=>{if(!e.target.matches('.choice'))return;[...e.currentTarget.children].forEach(b=>b.classList.toggle('active',b===e.target))});
-    $('exampleBtn').addEventListener('click',()=>{$('topic').value=CONFIG[mode].examples[Math.floor(Math.random()*CONFIG[mode].examples.length)];$('topic').focus()});
-    $('generateBtn').addEventListener('click',createTitles); $('retryBtn').addEventListener('click',createTitles);
-    $('topic').addEventListener('keydown',e=>{if(e.key==='Enter')createTitles()});
-    $('results').addEventListener('click',e=>{
-      const btn=e.target.closest('button'); if(!btn)return; const title=btn.dataset.title;
-      if(btn.classList.contains('copy'))copyText(title);
-      if(btn.classList.contains('select'))showMore(title);
-      if(btn.classList.contains('fav')){btn.classList.toggle('on');btn.textContent=btn.classList.contains('on')?'★ 즐겨찾기':'☆ 즐겨찾기';showToast(btn.classList.contains('on')?'즐겨찾기에 표시했습니다.':'즐겨찾기를 해제했습니다.')}
-    });
-    $('morePanel').addEventListener('click',e=>{const b=e.target.closest('.suggestion-copy');if(b)copyText(b.dataset.text)});
-    document.querySelectorAll('.history-tab').forEach(b=>b.addEventListener('click',()=>{historyMode=b.dataset.history;document.querySelectorAll('.history-tab').forEach(x=>x.classList.toggle('active',x===b));renderHistory()}));
-    $('historyList').addEventListener('click',e=>{const item=e.target.closest('.history-item[data-title]');if(item)copyText(item.dataset.title)});
-    $('clearHistory').addEventListener('click',()=>{if(confirm(`${CONFIG[historyMode].label} 최근 기록을 모두 삭제할까요?`)){localStorage.removeItem(`titleMakerHistory_${historyMode}`);renderHistory();showToast('최근 기록을 삭제했습니다.')}});
-
-    setMode('youtube'); renderHistory();
-  </script>
+  <!-- Scripts -->
+  <script src="presets.js?v=13"></script>
+  <script src="phonetic.js?v=13"></script>
+  <script src="translator.js?v=13"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>
